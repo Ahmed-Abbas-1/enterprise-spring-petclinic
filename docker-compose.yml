@@ -1,21 +1,48 @@
+version: '3.8'
+
 services:
-  mysql:
-    image: mysql:9.7
-    ports:
-      - "3306:3306"
+  petclinic-db:
+    image: mysql:8.0
+    container_name: petclinic-mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=
-      - MYSQL_ALLOW_EMPTY_PASSWORD=true
-      - MYSQL_USER=petclinic
-      - MYSQL_PASSWORD=petclinic
+      - MYSQL_ROOT_PASSWORD=root_pass_secure
       - MYSQL_DATABASE=petclinic
+      - MYSQL_USER=petclinic
+      - MYSQL_PASSWORD=petclinic_pass
     volumes:
-      - "./conf.d:/etc/mysql/conf.d:ro"
-  postgres:
-    image: postgres:18.4
+      - petclinic-db-data:/var/lib/mysql
+    networks:
+      - petclinic-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  petclinic-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: spring-petclinic:enterprise
+    container_name: petclinic-web
     ports:
-      - "5432:5432"
+      - "8080:8080"
     environment:
-      - POSTGRES_PASSWORD=petclinic
-      - POSTGRES_USER=petclinic
-      - POSTGRES_DB=petclinic
+      - SPRING_PROFILES_ACTIVE=mysql
+      - SPRING_DATASOURCE_URL=jdbc:mysql://petclinic-db:3306/petclinic?useUnicode=true
+      - SPRING_DATASOURCE_USERNAME=petclinic
+      - SPRING_DATASOURCE_PASSWORD=petclinic_pass
+    depends_on:
+      petclinic-db:
+        condition: service_healthy
+    networks:
+      - petclinic-net
+    restart: always
+
+networks:
+  petclinic-net:
+    driver: bridge
+
+volumes:
+  petclinic-db-data:
