@@ -34,18 +34,31 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 ## 📂 4. Repository Structure
 ```text
 .
+├── deploy/                     # Infrastructure deployment manifests
+│   └── k8s/                    # Kubernetes configuration files
+│       ├── 01-mysql-storage.yaml    # PV & PVC configurations
+│       ├── 02-mysql.yaml            # StatefulSet & ClusterIP Service
+│       ├── 03-app.yaml              # Deployment & NodePort Service
+│       ├── 04-network-policy.yaml   # Zero-Trust Database Isolation
+│       └── 05-ingress.yaml          # NGINX Ingress Controller setup
+├── docs/                       # Project documentation assets
+│   └── images/                 # Execution screenshots and diagrams
+│       ├── 2a-compute-resources.png
+│       ├── 2b-storage-resources.png
+│       ├── 4-ingress-routing.png
+│       ├── app-running.png
+│       ├── app-running-k8s.png
+│       ├── build-process.png
+│       ├── containers-healthy.png
+│       ├── data-persistence.png
+│       ├── docker push.png
+│       ├── dockerhub-images.png
+│       └── project-diagram.png
+├── src/                        # Original Spring Petclinic Source Code
 ├── Dockerfile                  # Multi-stage, secure container definition
 ├── docker-compose.yml          # Local orchestration & DB integration
-├── .dockerignore               # Context size optimization
-├── docs/                       # Project documentation assets
-│   └── images/                 # Execution screenshots and architecture diagrams
-│       ├── build-process.png
-│       ├── project-diagram.png
-│       ├── containers-healthy.png
-│       ├── app-running.png
-│       └── data-persistence.png
-├── src/                        # Original Spring Petclinic Source Code
-└── pom.xml                     # Maven build configuration
+├── pom.xml                     # Maven build configuration
+└── .dockerignore               # Context size optimization
 
 ## 📋 5. Prerequisites
 * [Docker Engine](https://docs.docker.com/engine/install/) (v20.10+)
@@ -53,18 +66,18 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 * Git
 
 
-## ⚙️ 6. Step-by-Step Execution Guide
+## 🐳 6. Local Execution Guide (Docker Compose)
+*Use this method for local development and testing.*
 
 **1. Clone the repository:**
 ```bash
 git clone [https://github.com/YOUR_GITHUB_USERNAME/spring-petclinic.git](https://github.com/YOUR_GITHUB_USERNAME/spring-petclinic.git)
 cd spring-petclinic
-
+```
 2. Build and run the infrastructure:
 ```bash
 docker-compose up -d --build
 ```
-Build Process Preview:
 
 3. Verify deployment health:
 ```bash
@@ -75,9 +88,41 @@ Ensure both containers petclinic-web and petclinic-mysql show a (healthy) status
 4. Access the application:
 Open your browser and navigate to: http://localhost:8080
 
-## 🚀 7. Implementation Stages & Verification
+☸️ 7. Enterprise Deployment Guide (Kubernetes)
+Use this method to deploy the highly available, production-ready cluster.
 
-### Stage 1: Multi-Stage Image Build & Optimization
+1. Apply the storage configurations (PV & PVC):
+```bash
+kubectl apply -f deploy/k8s/01-mysql-storage.yaml
+```
+2. Deploy the database and application workloads:
+```bash
+kubectl apply -f deploy/k8s/02-mysql.yaml
+kubectl apply -f deploy/k8s/03-app.yaml
+```
+3. Apply Network Policies and Ingress routing:
+```bash
+kubectl apply -f deploy/k8s/04-network-policy.yaml
+kubectl apply -f deploy/k8s/05-ingress.yaml
+```
+4. Configure local DNS resolution:
+Add the following line to your /etc/hosts file (Linux/Mac) or C:\Windows\System32\drivers\etc\hosts (Windows) to resolve the custom Ingress domain:
+# Replace the IP with your actual Kubernetes Node IP
+192.168.92.129  petclinic.local
+5. Verify cluster health:
+```bash
+kubectl get pods,svc,ingress
+```
+Ensure all pods are Running and the Ingress controller has successfully mapped the host.
+
+6. Access the application:
+Open your browser and navigate to the assigned Ingress NodePort: http://petclinic.local:31359
+
+## 🚀 8. Implementation Stages & Verification
+
+### 🐳 Part A: Docker Containerization Phase
+
+#### Stage 1: Multi-Stage Image Build & Optimization
 Constructed the customized Spring Boot application image using an optimized multi-stage Dockerfile, significantly reducing the image footprint and securing the build process.
 <p align="center">
   <img src="docs/images/build-process.png" width="90%">
@@ -85,7 +130,7 @@ Constructed the customized Spring Boot application image using an optimized mult
   <em><b>Figure 1:</b> Docker Compose build process showcasing layered caching and stage separation.</em>
 </p>
 
-### Stage 2: Local Orchestration & Container Health
+#### Stage 2: Local Orchestration & Container Health
 Deployed the Spring Boot application and MySQL database using Docker Compose, implementing strict healthchecks to ensure correct startup sequencing and stable runtime.
 <p align="center">
   <img src="docs/images/containers-healthy.png" width="90%">
@@ -93,7 +138,7 @@ Deployed the Spring Boot application and MySQL database using Docker Compose, im
   <em><b>Figure 2:</b> Containers operating in an isolated network, both reaching a stable <code>(healthy)</code> state.</em>
 </p>
 
-### Stage 3: Application Routing Verification
+#### Stage 3: Application Routing Verification
 Validated the successful exposure of the Spring Petclinic web interface on the designated host port, seamlessly communicating with the internal database network.
 <p align="center">
   <img src="docs/images/app-running.png" width="90%">
@@ -101,7 +146,7 @@ Validated the successful exposure of the Spring Petclinic web interface on the d
   <em><b>Figure 3:</b> The Spring Petclinic application successfully running and accessible via localhost.</em>
 </p>
 
-### Stage 4: Stateful Data Persistence
+#### Stage 4: Stateful Data Persistence
 Verified that the Docker Volumes successfully retained critical application data (e.g., newly added pet owners) across complete container teardowns and restarts.
 <p align="center">
   <img src="docs/images/data-persistence.png" width="90%">
@@ -109,21 +154,58 @@ Verified that the Docker Volumes successfully retained critical application data
   <em><b>Figure 4:</b> Persistent data successfully retrieved from the MySQL volume after a simulated environment restart.</em>
 </p>
 
-## ⚠️ 8. Challenges Encountered & Solutions
-* **Challenge:** Large image size and slow build times due to Maven dependencies and JDK inclusion.
-  * **Solution:** Implemented **Multi-Stage Builds**. Stage 1 leverages Docker layer caching to download dependencies only once, while Stage 2 uses a minimal `jre-alpine` image, reducing the final footprint drastically.
-* **Challenge:** Application container crashing on startup because the MySQL database wasn't fully initialized.
-  * **Solution:** Configured comprehensive **Healthchecks** on the MySQL container and utilized `depends_on: condition: service_healthy` in Docker Compose to ensure a zero-crash, sequenced startup.
-* **Challenge:** Security risks associated with running containers as root.
-  * **Solution:** Created a dedicated `petclinic` user and group within the Alpine image to ensure the application runs with least-privilege permissions.
+---
 
-## 🔭 9. Future Enhancements
-- [ ] Migrate orchestration to **Kubernetes** using custom Helm Charts.
-- [ ] Implement Infrastructure as Code (IaC) provisioning with **Terraform / Ansible**.
-- [ ] Integrate full observability stack (**Prometheus, Grafana, ELK Stack**).
-- [ ] Establish automated CI/CD pipelines via GitHub Actions.
+### ☸️ Part B: Kubernetes Enterprise Deployment Phase
 
-## 📬 10. Contact & Connect
+#### Stage 1: Private Registry (DockerHub) Integration
+Pushed the customized container images to a secure DockerHub repository to be pulled securely by the cluster.
+<p align="center">
+  <img src="docs/images/dockerhub-images.png" width="90%">
+  <br>
+  <em><b>Figure 3:</b> DockerHub repository securely storing the application and database images.</em>
+</p>
+
+#### Stage 2: Compute Resources Deployment
+Deployed the Spring application via Deployments (High Availability with 2 Replicas) and the MySQL database via StatefulSets.
+<p align="center">
+  <img src="docs/images/2a-compute-resources_2.png" width="90%">
+  <br>
+  <em><b>Figure 4:</b> Pods, Deployments, and StatefulSets in a stable `Running` state without restart loops.</em>
+</p>
+
+#### Stage 3: Dynamic Storage Provisioning
+Verified that the Persistent Volume Claims (PVCs) for the database successfully bound to the provisioned Persistent Volumes (PVs).
+<p align="center">
+  <img src="docs/images/2b-storage-resources.png" width="90%">
+  <br>
+  <em><b>Figure 5:</b> PVCs and PVs successfully Bound to isolated host directories.</em>
+</p>
+
+#### Stage 4: Network Isolation & Routing Setup
+Validated the creation of internal Services, applied strict Network Policies for database isolation, and configured the NGINX Ingress controller for domain routing.
+<p align="center">
+  <img src="docs/images/4-ingress-routing.png" width="90%">
+  <br>
+  <em><b>Figure 6:</b> Application successfully accessed via NGINX Ingress routing using a custom local domain.</em>
+</p>
+
+## ⚠️ 9. Challenges Encountered & Solutions
+* **Challenge:** Large image size and slow build times during initial containerization.
+  * **Solution:** Implemented **Multi-Stage Builds** using Alpine Linux, leveraging layer caching to download dependencies only once and reducing the final footprint drastically.
+* **Challenge:** Guaranteeing database data persistence across ephemeral Kubernetes Pod restarts.
+  * **Solution:** Transitioned from Deployments to **StatefulSets** for the MySQL database and implemented **Persistent Volumes (PV) & PVCs** mapped to isolated host directories.
+* **Challenge:** Securely routing external traffic to the application while completely isolating the database from public access.
+  * **Solution:** Utilized an **NGINX Ingress Controller** for clean domain-based routing (`petclinic.local`) and applied strict **Zero-Trust Network Policies** that restrict database access exclusively to the application pods.
+
+## 🔭 10. Future Enhancements
+- [x] Migrate local orchestration to an **Enterprise Kubernetes Cluster**.
+- [ ] Package Kubernetes manifests using **Helm Charts** for dynamic and template-based deployments.
+- [ ] Implement Infrastructure as Code (IaC) provisioning pipelines with **Terraform & Ansible**.
+- [ ] Integrate a full observability and telemetry stack (**Prometheus, Grafana, ELK Stack**).
+- [ ] Establish automated CI/CD pipelines via **GitHub Actions**.
+
+## 📬 11. Contact & Connect
 
 <div align="center">
   <h3>🏗️ Architected & Deployed by</h3>

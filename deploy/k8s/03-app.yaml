@@ -1,0 +1,68 @@
+# ==============================================================================
+# Project: Enterprise Spring Petclinic Infrastructure
+# Component: Spring Boot App (Deployment & NodePort Service)
+# Architect: Ahmed Mohamed Abbas
+# ==============================================================================
+
+---
+# 1. Deployment: The Application Workload (High Availability)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-app
+  labels:
+    app: petclinic-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: petclinic-web
+  template:
+    metadata:
+      labels:
+        app: petclinic-web
+    spec:
+      containers:
+        - name: spring-app
+          image: ahmedabbas95/spring-petclinic:v1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "mysql"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://petclinic-db:3306/petclinic?useUnicode=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "petclinic"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "petclinic_pass"
+          
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+
+---
+# 2. Service: Exposing the Application to the outside world
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-app-svc
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30090
+  selector:
+    app: petclinic-web

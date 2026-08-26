@@ -1,0 +1,69 @@
+# ==============================================================================
+# Project: Enterprise Spring Petclinic Infrastructure
+# Component: MySQL Database (StatefulSet & ClusterIP Service)
+# Architect: Ahmed Mohamed Abbas
+# ==============================================================================
+
+---
+# 1. Service: Internal Network endpoint for the Database
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-db
+  labels:
+    app: petclinic-db
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: 3306
+  selector:
+    app: petclinic-db
+
+---
+# 2. StatefulSet: The Database Workload
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: petclinic-mysql
+  labels:
+    app: petclinic-db
+spec:
+  serviceName: "petclinic-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-db
+  template:
+    metadata:
+      labels:
+        app: petclinic-db
+    spec:
+      containers:
+        - name: mysql
+          image: ahmedabbas95/petclinic-mysql:v1.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root_pass_secure"
+            - name: MYSQL_DATABASE
+              value: "petclinic"
+            - name: MYSQL_USER
+              value: "petclinic"
+            - name: MYSQL_PASSWORD
+              value: "petclinic_pass"
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            exec:
+              command: ["mysqladmin", "ping", "-h", "localhost"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: petclinic-mysql-pvc
