@@ -14,12 +14,12 @@
 ---
 
 ## 📖 1. Project Overview
-This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has been completely refactored from a standard development environment into a highly secure, optimized, and production-ready containerized architecture utilizing Docker best practices such as Multi-Stage Builds, Non-Root execution, and strict Dependency Management.
+This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has evolved from optimized local Docker containerization into a highly available, production-ready **Kubernetes (K8s)** architecture, complete with persistent storage, zero-trust network isolation, and domain-based Ingress routing.
 
 ## 🏛️ 2. Architecture Diagram
 
 <p align="center">
-  <img src="./images/project-diagram.png" width="100%">
+  <img src="docs/images/project-diagram.png" width="100%">
   <br>
   <em><b>Figure 1:</b> System Architecture Diagram </em>
 </p>
@@ -27,9 +27,11 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 ## 🧰 3. Technology Stack
 * **Application:** Java 17, Spring Boot
 * **Containerization:** Docker, Multi-Stage Builds (Alpine Linux)
-* **Orchestration (Local):** Docker Compose
-* **Database:** MySQL 8.0
-* **Security:** Non-Root User execution, Network Isolation
+* **Local Orchestration:** Docker Compose
+* **Enterprise Orchestration:** Kubernetes (K8s)
+* **Database:** MySQL 8.0 (StatefulSets, PV/PVCs for Data Persistence)
+* **Networking & Routing:** NGINX Ingress Controller, K8s Services
+* **Security:** Non-Root User execution, K8s Zero-Trust Network Policies
 
 ## 📂 4. Repository Structure
 ```text
@@ -57,14 +59,18 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 ├── src/                        # Original Spring Petclinic Source Code
 ├── Dockerfile                  # Multi-stage, secure container definition
 ├── docker-compose.yml          # Local orchestration & DB integration
+<<<<<<< HEAD
 ├── pom.xml                     # Maven build configuration
 └── .dockerignore               # Context size optimization
 
+```
 ## 📋 5. Prerequisites
-* [Docker Engine](https://docs.docker.com/engine/install/) (v20.10+)
-* [Docker Compose](https://docs.docker.com/compose/install/) (v2.0+)
-* Git
-
+To fully deploy and test this infrastructure, ensure you have the following installed:
+* [Git](https://git-scm.com/downloads)
+* [Docker Engine](https://docs.docker.com/engine/install/) & [Docker Compose](https://docs.docker.com/compose/install/) (For local testing)
+* **A running Kubernetes Cluster** (e.g., `kubeadm`, `minikube`, or cloud-managed like EKS/AKS)
+* [`kubectl` CLI](https://kubernetes.io/docs/tasks/tools/) configured to communicate with your cluster
+* **NGINX Ingress Controller** installed on your K8s cluster
 
 ## 🐳 6. Local Execution Guide (Docker Compose)
 *Use this method for local development and testing.*
@@ -127,7 +133,7 @@ Constructed the customized Spring Boot application image using an optimized mult
 <p align="center">
   <img src="docs/images/build-process.png" width="90%">
   <br>
-  <em><b>Figure 1:</b> Docker Compose build process showcasing layered caching and stage separation.</em>
+  <em><b>Figure 2:</b> Docker Compose build process showcasing layered caching and stage separation.</em>
 </p>
 
 #### Stage 2: Local Orchestration & Container Health
@@ -135,7 +141,7 @@ Deployed the Spring Boot application and MySQL database using Docker Compose, im
 <p align="center">
   <img src="docs/images/containers-healthy.png" width="90%">
   <br>
-  <em><b>Figure 2:</b> Containers operating in an isolated network, both reaching a stable <code>(healthy)</code> state.</em>
+  <em><b>Figure 3:</b> Containers operating in an isolated network, both reaching a stable <code>(healthy)</code> state.</em>
 </p>
 
 #### Stage 3: Application Routing Verification
@@ -143,7 +149,7 @@ Validated the successful exposure of the Spring Petclinic web interface on the d
 <p align="center">
   <img src="docs/images/app-running.png" width="90%">
   <br>
-  <em><b>Figure 3:</b> The Spring Petclinic application successfully running and accessible via localhost.</em>
+  <em><b>Figure 4:</b> The Spring Petclinic application successfully running and accessible via localhost.</em>
 </p>
 
 #### Stage 4: Stateful Data Persistence
@@ -151,7 +157,7 @@ Verified that the Docker Volumes successfully retained critical application data
 <p align="center">
   <img src="docs/images/data-persistence.png" width="90%">
   <br>
-  <em><b>Figure 4:</b> Persistent data successfully retrieved from the MySQL volume after a simulated environment restart.</em>
+  <em><b>Figure 5:</b> Persistent data successfully retrieved from the MySQL volume after a simulated environment restart.</em>
 </p>
 
 ---
@@ -163,7 +169,7 @@ Pushed the customized container images to a secure DockerHub repository to be pu
 <p align="center">
   <img src="docs/images/dockerhub-images.png" width="90%">
   <br>
-  <em><b>Figure 3:</b> DockerHub repository securely storing the application and database images.</em>
+  <em><b>Figure 6:</b> DockerHub repository securely storing the application and database images.</em>
 </p>
 
 #### Stage 2: Compute Resources Deployment
@@ -171,7 +177,7 @@ Deployed the Spring application via Deployments (High Availability with 2 Replic
 <p align="center">
   <img src="docs/images/2a-compute-resources_2.png" width="90%">
   <br>
-  <em><b>Figure 4:</b> Pods, Deployments, and StatefulSets in a stable `Running` state without restart loops.</em>
+  <em><b>Figure 7:</b> Pods, Deployments, and StatefulSets in a stable `Running` state without restart loops.</em>
 </p>
 
 #### Stage 3: Dynamic Storage Provisioning
@@ -179,7 +185,7 @@ Verified that the Persistent Volume Claims (PVCs) for the database successfully 
 <p align="center">
   <img src="docs/images/2b-storage-resources.png" width="90%">
   <br>
-  <em><b>Figure 5:</b> PVCs and PVs successfully Bound to isolated host directories.</em>
+  <em><b>Figure 8:</b> PVCs and PVs successfully Bound to isolated host directories.</em>
 </p>
 
 #### Stage 4: Network Isolation & Routing Setup
@@ -187,7 +193,7 @@ Validated the creation of internal Services, applied strict Network Policies for
 <p align="center">
   <img src="docs/images/4-ingress-routing.png" width="90%">
   <br>
-  <em><b>Figure 6:</b> Application successfully accessed via NGINX Ingress routing using a custom local domain.</em>
+  <em><b>Figure 9:</b> Application successfully accessed via NGINX Ingress routing using a custom local domain.</em>
 </p>
 
 ## ⚠️ 9. Challenges Encountered & Solutions
