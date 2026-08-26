@@ -1,15 +1,15 @@
 <div align="center">
-
-# 🚀 Enterprise Spring Petclinic Infrastructure
-
-![Docker](https://img.shields.io/badge/DOCKER-CONTAINERIZED-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/SPRING_BOOT-FRAMEWORK-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
-![MySQL](https://img.shields.io/badge/MYSQL-DATABASE-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![Java](https://img.shields.io/badge/JAVA_17-ECLIPSE_TEMURIN-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-<br>
-![Build](https://img.shields.io/badge/INFRASTRUCTURE-PRODUCTION_READY-brightgreen?style=for-the-badge)
-
+  <h1>🚀 Enterprise Spring Petclinic Infrastructure</h1>
+  <p>
+    <img src="https://img.shields.io/badge/Kubernetes-Orchestration-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes" />
+    <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+    <img src="https://img.shields.io/badge/Spring_Boot-Framework-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot" />
+    <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
+    <img src="https://img.shields.io/badge/Infrastructure-Production_Ready-4CAF50?style=for-the-badge" alt="Production Ready" />
+  </p>
 </div>
+
+<br>
 
 ---
 
@@ -59,7 +59,6 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 ├── src/                        # Original Spring Petclinic Source Code
 ├── Dockerfile                  # Multi-stage, secure container definition
 ├── docker-compose.yml          # Local orchestration & DB integration
-<<<<<<< HEAD
 ├── pom.xml                     # Maven build configuration
 └── .dockerignore               # Context size optimization
 
@@ -115,6 +114,7 @@ kubectl apply -f deploy/k8s/05-ingress.yaml
 Add the following line to your /etc/hosts file (Linux/Mac) or C:\Windows\System32\drivers\etc\hosts (Windows) to resolve the custom Ingress domain:
 # Replace the IP with your actual Kubernetes Node IP
 192.168.92.129  petclinic.local
+
 5. Verify cluster health:
 ```bash
 kubectl get pods,svc,ingress
@@ -175,7 +175,7 @@ Pushed the customized container images to a secure DockerHub repository to be pu
 #### Stage 2: Compute Resources Deployment
 Deployed the Spring application via Deployments (High Availability with 2 Replicas) and the MySQL database via StatefulSets.
 <p align="center">
-  <img src="docs/images/2a-compute-resources_2.png" width="90%">
+  <img src="docs/images/2a-compute-resources.png" width="90%">
   <br>
   <em><b>Figure 7:</b> Pods, Deployments, and StatefulSets in a stable `Running` state without restart loops.</em>
 </p>
