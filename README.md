@@ -32,10 +32,13 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 * **Database:** MySQL 8.0 (StatefulSets, PV/PVCs for Data Persistence)
 * **Networking & Routing:** NGINX Ingress Controller, K8s Services
 * **Security:** Non-Root User execution, K8s Zero-Trust Network Policies
-
+* **CI/CD Automation:** GitHub Actions
 ## 📂 4. Repository Structure
 ```text
 .
+├── .github/                    # GitHub Actions CI/CD Workflows
+│   └── workflows/
+│       └── ci-cd.yaml          # Automated Build & Push pipeline definition
 ├── deploy/                     # Infrastructure deployment manifests
 │   └── k8s/                    # Kubernetes configuration files
 │       ├── 01-mysql-storage.yaml    # PV & PVC configurations
@@ -55,6 +58,7 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 │       ├── data-persistence.png
 │       ├── docker push.png
 │       ├── dockerhub-images.png
+│       ├── github-actions-success.png
 │       └── project-diagram.png
 ├── src/                        # Original Spring Petclinic Source Code
 ├── Dockerfile                  # Multi-stage, secure container definition
@@ -196,6 +200,17 @@ Validated the creation of internal Services, applied strict Network Policies for
   <em><b>Figure 9:</b> Application successfully accessed via NGINX Ingress routing using a custom local domain.</em>
 </p>
 
+---
+### ⚙️ Part C: CI/CD Automation Phase
+
+#### Stage 1: Automated Build & Push Pipeline
+Implemented a fully automated CI/CD pipeline using **GitHub Actions**. Upon code changes, the pipeline securely authenticates with DockerHub via GitHub Secrets, builds the multi-stage image, and pushes it with dynamic version tags (including the Git commit SHA) for reliable version control.
+<p align="center">
+  <img src="docs/images/github-actions-success.png" width="90%">
+  <br>
+  <em><b>Figure 10:</b> Successful execution of the GitHub Actions CI/CD pipeline triggering an automated build and push.</em>
+</p>
+
 ## ⚠️ 9. Challenges Encountered & Solutions
 * **Challenge:** Large image size and slow build times during initial containerization.
   * **Solution:** Implemented **Multi-Stage Builds** using Alpine Linux, leveraging layer caching to download dependencies only once and reducing the final footprint drastically.
@@ -206,10 +221,10 @@ Validated the creation of internal Services, applied strict Network Policies for
 
 ## 🔭 10. Future Enhancements
 - [x] Migrate local orchestration to an **Enterprise Kubernetes Cluster**.
+- [x] Establish automated CI/CD pipelines via **GitHub Actions**.
 - [ ] Package Kubernetes manifests using **Helm Charts** for dynamic and template-based deployments.
 - [ ] Implement Infrastructure as Code (IaC) provisioning pipelines with **Terraform & Ansible**.
 - [ ] Integrate a full observability and telemetry stack (**Prometheus, Grafana, ELK Stack**).
-- [ ] Establish automated CI/CD pipelines via **GitHub Actions**.
 
 ## 📬 11. Contact & Connect
 
