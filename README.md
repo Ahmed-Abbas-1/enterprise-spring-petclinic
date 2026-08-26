@@ -19,7 +19,7 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 ## 🏛️ 2. Architecture Diagram
 
 <p align="center">
-  <img src="./images/project-diagram.png" width="100%">
+  <img src="docs/images/project-diagram.png" width="100%">
   <br>
   <em><b>Figure 1:</b> System Architecture Diagram </em>
 </p>
@@ -46,7 +46,7 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 │       └── data-persistence.png
 ├── src/                        # Original Spring Petclinic Source Code
 └── pom.xml                     # Maven build configuration
-
+```
 ## 📋 5. Prerequisites
 * [Docker Engine](https://docs.docker.com/engine/install/) (v20.10+)
 * [Docker Compose](https://docs.docker.com/compose/install/) (v2.0+)
@@ -59,7 +59,7 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 ```bash
 git clone [https://github.com/YOUR_GITHUB_USERNAME/spring-petclinic.git](https://github.com/YOUR_GITHUB_USERNAME/spring-petclinic.git)
 cd spring-petclinic
-
+```
 2. Build and run the infrastructure:
 ```bash
 docker-compose up -d --build
