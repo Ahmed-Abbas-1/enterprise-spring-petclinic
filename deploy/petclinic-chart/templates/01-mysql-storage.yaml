@@ -1,0 +1,36 @@
+# ==============================================================================
+# Project: Enterprise Spring Petclinic Infrastructure
+# Component: Kubernetes Storage (PV & PVC for MySQL)
+# Architect: Ahmed Mohamed Abbas
+# ==============================================================================
+
+---
+# 1. Persistent Volume (PV): The actual storage on the cluster
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: petclinic-mysql-pv
+  labels:
+    app: petclinic-db
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/petclinic-mysql"
+    
+---
+# 2. Persistent Volume Claim (PVC): The request for storage by the Pod
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: petclinic-mysql-pvc
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

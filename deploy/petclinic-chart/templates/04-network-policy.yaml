@@ -1,0 +1,24 @@
+# ==============================================================================
+# Project: Enterprise Spring Petclinic Infrastructure
+# Component: Zero-Trust Network Policy for MySQL
+# Architect: Ahmed Mohamed Abbas
+# ==============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: petclinic-db-isolation
+spec:
+  podSelector:
+    matchLabels:
+      app: petclinic-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: petclinic-web
+      ports:
+        - protocol: TCP
+          port: 3306

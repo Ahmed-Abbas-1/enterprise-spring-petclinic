@@ -1,0 +1,25 @@
+# ==============================================================================
+# Project: Enterprise Spring Petclinic Infrastructure
+# Component: NGINX Ingress Routing
+# Architect: Ahmed Mohamed Abbas
+# ==============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: petclinic-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: petclinic.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: petclinic-app-svc
+            port:
+              number: 8080

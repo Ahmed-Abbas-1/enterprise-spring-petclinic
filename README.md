@@ -3,6 +3,7 @@
   <p>
     <img src="https://img.shields.io/badge/Kubernetes-Orchestration-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes" />
     <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+    <img src="https://img.shields.io/badge/Helm-Packaging-0F1689?style=for-the-badge&logo=helm&logoColor=white" alt="Helm" />
     <img src="https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions" />
     <img src="https://img.shields.io/badge/Prometheus-Monitoring-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" alt="Prometheus" />
     <img src="https://img.shields.io/badge/Grafana-Observability-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana" />
@@ -18,7 +19,7 @@
 ---
 
 ## 📖 1. Project Overview
-This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has evolved from optimized local Docker containerization into a highly available, production-ready **Kubernetes (K8s)** architecture. It is fully equipped with persistent storage, zero-trust network isolation, domain-based Ingress routing, automated **CI/CD pipelines via GitHub Actions**, and a complete **Observability stack using Prometheus and Grafana**.
+This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has evolved from optimized local Docker containerization into a highly available, production-ready **Kubernetes (K8s)** architecture. It is fully equipped with persistent storage, zero-trust network isolation, domain-based Ingress routing, automated **CI/CD pipelines via GitHub Actions**, a complete **Observability stack using Prometheus and Grafana**, and elegantly packaged using **Custom Helm Charts** for seamless, dynamic deployments.
 
 ## 🏛️ 2. Architecture Diagram
 
@@ -33,24 +34,31 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 * **Containerization:** Docker, Multi-Stage Builds (Alpine Linux)
 * **Local Orchestration:** Docker Compose
 * **Enterprise Orchestration:** Kubernetes (K8s)
+* **Infrastructure Packaging:** Helm (Custom Charts & Dynamic `values.yaml` Templating)
 * **Database:** MySQL 8.0 (StatefulSets, PV/PVCs for Data Persistence)
 * **Networking & Routing:** NGINX Ingress Controller, K8s Services
-* **Security:** Non-Root User execution, K8s Zero-Trust Network Policies
+* **Lifecycle & Security:** K8s Init-Containers (Startup Synchronization), Non-Root Execution, Zero-Trust Network Policies
 * **CI/CD Automation:** GitHub Actions
 * **Observability & Monitoring:** Prometheus, Grafana, Node Exporter (Deployed via Helm)
+
 ## 📂 4. Repository Structure
+
 ```text
 .
 ├── .github/                    # GitHub Actions CI/CD Workflows
 │   └── workflows/
 │       └── ci-cd.yaml          # Automated Build & Push pipeline definition
 ├── deploy/                     # Infrastructure deployment manifests
-│   └── k8s/                    # Kubernetes configuration files
-│       ├── 01-mysql-storage.yaml    # PV & PVC configurations
-│       ├── 02-mysql.yaml            # StatefulSet & ClusterIP Service
-│       ├── 03-app.yaml              # Deployment & NodePort Service
-│       ├── 04-network-policy.yaml   # Zero-Trust Database Isolation
-│       └── 05-ingress.yaml          # NGINX Ingress Controller setup
+│   ├── k8s/                    # Original Kubernetes configuration files
+│   │   ├── 01-mysql-storage.yaml    # PV & PVC configurations
+│   │   ├── 02-mysql.yaml            # StatefulSet & ClusterIP Service
+│   │   ├── 03-app.yaml              # Deployment (with Init-Containers) & Service
+│   │   ├── 04-network-policy.yaml   # Zero-Trust Database Isolation
+│   │   └── 05-ingress.yaml          # NGINX Ingress Controller setup
+│   └── petclinic-chart/        # Custom Helm Chart for dynamic deployments
+│       ├── Chart.yaml          # Helm chart metadata
+│       ├── values.yaml         # Centralized dynamic configuration (e.g., replicas)
+│       └── templates/          # Parameterized Kubernetes manifests
 ├── docs/                       # Project documentation assets
 │   └── images/                 # Execution screenshots and diagrams
 │       ├── 2a-compute-resources.png
@@ -65,6 +73,8 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 │       ├── dockerhub-images.png
 │       ├── github-actions-success.png
 │       ├── grafana-dashboard.png
+│       ├── helm-pods-running.png    # NEW: Replicas and Init-Container stability
+│       ├── helm-release.png         # NEW: Helm chart deployment status
 │       └── project-diagram.png
 ├── src/                        # Original Spring Petclinic Source Code
 ├── Dockerfile                  # Multi-stage, secure container definition
@@ -81,7 +91,7 @@ To fully deploy and test this infrastructure, ensure you have the following inst
 * **A running Kubernetes Cluster** (e.g., `kubeadm`, `minikube`, or cloud-managed like EKS/AKS)
 * [`kubectl` CLI](https://kubernetes.io/docs/tasks/tools/) configured to communicate with your cluster
 * **NGINX Ingress Controller** installed on your K8s cluster
-* [**Helm CLI**](https://helm.sh/docs/intro/install/) (Required for deploying the Observability stack)
+* [**Helm CLI**](https://helm.sh/docs/intro/install/) (Required for deploying the custom application chart and the Observability stack)
 
 ## 🐳 6. Local Execution Guide (Docker Compose)
 *Use this method for local development and testing.*
@@ -105,45 +115,42 @@ Ensure both containers petclinic-web and petclinic-mysql show a (healthy) status
 4. Access the application:
 Open your browser and navigate to: http://localhost:8080
 
-☸️ 7. Enterprise Deployment Guide (Kubernetes)
-Use this method to deploy the highly available, production-ready cluster.
+5. Stop and clean up:
+```bash
+docker-compose down -v
+```
 
-1. Apply the storage configurations (PV & PVC):
+☸️ 7. Enterprise Deployment Guide (Kubernetes)
+Use this method to deploy the highly available, production-ready cluster using our custom Helm chart.
+
+1. Deploy the application via Helm:
+Instead of applying multiple YAML files manually, deploy the entire stack (Database, App, Services, Network Policies, and Ingress) with a single command:
 ```bash
-kubectl apply -f deploy/k8s/01-mysql-storage.yaml
+helm install my-petclinic ./deploy/petclinic-chart
 ```
-2. Deploy the database and application workloads:
-```bash
-kubectl apply -f deploy/k8s/02-mysql.yaml
-kubectl apply -f deploy/k8s/03-app.yaml
-```
-3. Apply Network Policies and Ingress routing:
-```bash
-kubectl apply -f deploy/k8s/04-network-policy.yaml
-kubectl apply -f deploy/k8s/05-ingress.yaml
-```
-4. Configure local DNS resolution:
+2. Configure local DNS resolution:
 Add the following line to your /etc/hosts file (Linux/Mac) or C:\Windows\System32\drivers\etc\hosts (Windows) to resolve the custom Ingress domain:
 # Replace the IP with your actual Kubernetes Node IP
 192.168.92.129  petclinic.local
 
-5. Verify cluster health:
+3. Verify cluster health:
 ```bash
 kubectl get pods,svc,ingress
 ```
-Ensure all pods are Running and the Ingress controller has successfully mapped the host.
+Ensure all pods are Running. (Note: The application pods will smoothly wait in Init state until the MySQL database is fully ready).
 
-6. Access the application:
+4. Access the application:
 Open your browser and navigate to the assigned Ingress NodePort: http://petclinic.local:31359
 
-**8. Deploy the Observability Stack (Optional):**
+**📊 8. Deploy the Observability Stack (Optional):**
 Deploy Prometheus and Grafana using the official Helm chart:
 ```bash
 helm repo add prometheus-community [https://prometheus-community.github.io/helm-charts](https://prometheus-community.github.io/helm-charts)
 helm repo update
 helm install monitoring-stack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
 ```
-8. Access Grafana Dashboards:
+
+📈 9. Access Grafana Dashboards:
 Retrieve the auto-generated admin password and port-forward the Grafana service:
 ```bash
 # Extract Grafana Admin Password
@@ -156,7 +163,7 @@ Navigate to http://localhost:32000 and log in with username admin and the extrac
 
 > 💡 **Developer Note (CI/CD):** If you fork this repository, the GitHub Actions pipeline is ready to use. Simply add `DOCKER_USERNAME` and `DOCKER_PASSWORD` to your repository's GitHub Secrets to enable automated builds and pushes to your own DockerHub registry.
 
-## 🚀 9. Implementation Stages & Verification
+## 🚀 10. Implementation Stages & Verification
 
 ### 🐳 Part A: Docker Containerization Phase
 
@@ -251,22 +258,43 @@ Deployed a comprehensive monitoring stack using the official `kube-prometheus-st
   <em><b>Figure 11:</b> Grafana dashboard visualizing real-time compute resources and cluster utilization.</em>
 </p>
 
-## ⚠️ 10. Challenges Encountered & Solutions
+---
+
+### 📦 Part E: Helm Chart Packaging & Lifecycle Management
+
+#### Stage 1: Dynamic Application Deployment
+Packaged the raw Kubernetes YAML manifests into a **Custom Helm Chart** (`petclinic-chart`). This allows for single-command deployments and dynamic configuration management (e.g., scaling replicas dynamically via `values.yaml` templating) rather than hardcoding values in static files.
+<p align="center">
+  <img src="docs/images/helm-release.png" width="90%">
+  <br>
+  <em><b>Figure 12:</b> Successful Helm chart deployment creating a managed release for the Petclinic infrastructure.</em>
+</p>
+
+#### Stage 2: Startup Synchronization (Init-Containers)
+Resolved the classic `CrashLoopBackOff` race condition by implementing Kubernetes **Init-Containers**. The application pods now intelligently wait for the MySQL database to become fully operational on port 3306 before initializing, ensuring a smooth, crash-free startup sequence across all dynamically scaled replicas.
+<p align="center">
+  <img src="docs/images/helm-pods-running.png" width="90%">
+  <br>
+  <em><b>Figure 13:</b> Application and Database pods running flawlessly, stabilized by Init-Containers and dynamically scaled to 3 replicas.</em>
+</p>
+
+## ⚠️ 11. Challenges Encountered & Solutions
 * **Challenge:** Large image size and slow build times during initial containerization.
   * **Solution:** Implemented **Multi-Stage Builds** using Alpine Linux, leveraging layer caching to download dependencies only once and reducing the final footprint drastically.
 * **Challenge:** Guaranteeing database data persistence across ephemeral Kubernetes Pod restarts.
   * **Solution:** Transitioned from Deployments to **StatefulSets** for the MySQL database and implemented **Persistent Volumes (PV) & PVCs** mapped to isolated host directories.
 * **Challenge:** Securely routing external traffic to the application while completely isolating the database from public access.
   * **Solution:** Utilized an **NGINX Ingress Controller** for clean domain-based routing (`petclinic.local`) and applied strict **Zero-Trust Network Policies** that restrict database access exclusively to the application pods.
+* **Challenge:** Application pods entering a `CrashLoopBackOff` state due to a race condition where they initialize before the database is fully ready.
+  * **Solution:** Implemented Kubernetes **Init-Containers** within the Custom Helm Chart to actively poll the database port, ensuring the main application container only boots after a successful connection to MySQL is established.
 
-## 🔭 11. Future Enhancements
+## 🔭 12. Future Enhancements
 - [x] Migrate local orchestration to an **Enterprise Kubernetes Cluster**.
 - [x] Establish automated CI/CD pipelines via **GitHub Actions**.
 - [x] Integrate a full observability and telemetry stack (**Prometheus & Grafana** via Helm).
-- [ ] Package custom Kubernetes manifests using **Helm Charts** for dynamic deployments.
+- [x] Package custom Kubernetes manifests using **Helm Charts** for dynamic deployments.
 - [ ] Implement Infrastructure as Code (IaC) provisioning pipelines with **Terraform & Ansible**.
-
-## 📬 12. Contact & Connect
+## 📬 13. Contact & Connect
 
 <div align="center">
   <h3>🏗️ Architected & Deployed by</h3>
