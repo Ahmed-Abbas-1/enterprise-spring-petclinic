@@ -3,6 +3,10 @@
   <p>
     <img src="https://img.shields.io/badge/Kubernetes-Orchestration-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes" />
     <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+    <img src="https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" alt="GitHub Actions" />
+    <img src="https://img.shields.io/badge/Prometheus-Monitoring-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" alt="Prometheus" />
+    <img src="https://img.shields.io/badge/Grafana-Observability-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana" />
+    <br>
     <img src="https://img.shields.io/badge/Spring_Boot-Framework-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot" />
     <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
     <img src="https://img.shields.io/badge/Infrastructure-Production_Ready-4CAF50?style=for-the-badge" alt="Production Ready" />
@@ -14,7 +18,7 @@
 ---
 
 ## 📖 1. Project Overview
-This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has evolved from optimized local Docker containerization into a highly available, production-ready **Kubernetes (K8s)** architecture, complete with persistent storage, zero-trust network isolation, and domain-based Ingress routing.
+This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has evolved from optimized local Docker containerization into a highly available, production-ready **Kubernetes (K8s)** architecture. It is fully equipped with persistent storage, zero-trust network isolation, domain-based Ingress routing, automated **CI/CD pipelines via GitHub Actions**, and a complete **Observability stack using Prometheus and Grafana**.
 
 ## 🏛️ 2. Architecture Diagram
 
@@ -33,6 +37,7 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 * **Networking & Routing:** NGINX Ingress Controller, K8s Services
 * **Security:** Non-Root User execution, K8s Zero-Trust Network Policies
 * **CI/CD Automation:** GitHub Actions
+* **Observability & Monitoring:** Prometheus, Grafana, Node Exporter (Deployed via Helm)
 ## 📂 4. Repository Structure
 ```text
 .
@@ -59,6 +64,7 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 │       ├── docker push.png
 │       ├── dockerhub-images.png
 │       ├── github-actions-success.png
+│       ├── grafana-dashboard.png
 │       └── project-diagram.png
 ├── src/                        # Original Spring Petclinic Source Code
 ├── Dockerfile                  # Multi-stage, secure container definition
@@ -67,6 +73,7 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 └── .dockerignore               # Context size optimization
 
 ```
+
 ## 📋 5. Prerequisites
 To fully deploy and test this infrastructure, ensure you have the following installed:
 * [Git](https://git-scm.com/downloads)
@@ -74,6 +81,7 @@ To fully deploy and test this infrastructure, ensure you have the following inst
 * **A running Kubernetes Cluster** (e.g., `kubeadm`, `minikube`, or cloud-managed like EKS/AKS)
 * [`kubectl` CLI](https://kubernetes.io/docs/tasks/tools/) configured to communicate with your cluster
 * **NGINX Ingress Controller** installed on your K8s cluster
+* [**Helm CLI**](https://helm.sh/docs/intro/install/) (Required for deploying the Observability stack)
 
 ## 🐳 6. Local Execution Guide (Docker Compose)
 *Use this method for local development and testing.*
@@ -128,7 +136,27 @@ Ensure all pods are Running and the Ingress controller has successfully mapped t
 6. Access the application:
 Open your browser and navigate to the assigned Ingress NodePort: http://petclinic.local:31359
 
-## 🚀 8. Implementation Stages & Verification
+**8. Deploy the Observability Stack (Optional):**
+Deploy Prometheus and Grafana using the official Helm chart:
+```bash
+helm repo add prometheus-community [https://prometheus-community.github.io/helm-charts](https://prometheus-community.github.io/helm-charts)
+helm repo update
+helm install monitoring-stack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+```
+8. Access Grafana Dashboards:
+Retrieve the auto-generated admin password and port-forward the Grafana service:
+```bash
+# Extract Grafana Admin Password
+kubectl get secret --namespace monitoring monitoring-stack-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+
+# Expose Grafana to localhost
+kubectl port-forward -n monitoring svc/monitoring-stack-grafana 32000:80
+```
+Navigate to http://localhost:32000 and log in with username admin and the extracted password.
+
+> 💡 **Developer Note (CI/CD):** If you fork this repository, the GitHub Actions pipeline is ready to use. Simply add `DOCKER_USERNAME` and `DOCKER_PASSWORD` to your repository's GitHub Secrets to enable automated builds and pushes to your own DockerHub registry.
+
+## 🚀 9. Implementation Stages & Verification
 
 ### 🐳 Part A: Docker Containerization Phase
 
@@ -211,7 +239,19 @@ Implemented a fully automated CI/CD pipeline using **GitHub Actions**. Upon code
   <em><b>Figure 10:</b> Successful execution of the GitHub Actions CI/CD pipeline triggering an automated build and push.</em>
 </p>
 
-## ⚠️ 9. Challenges Encountered & Solutions
+---
+
+### 📊 Part D: Observability & Monitoring Phase
+
+#### Stage 1: Full-Stack Telemetry Deployment
+Deployed a comprehensive monitoring stack using the official `kube-prometheus-stack` Helm chart. The setup includes Prometheus for metric scraping, Node Exporter for hardware metrics, and Grafana for rich data visualization, providing deep insights into cluster and workload health.
+<p align="center">
+  <img src="docs/images/grafana-dashboard.png" width="90%">
+  <br>
+  <em><b>Figure 11:</b> Grafana dashboard visualizing real-time compute resources and cluster utilization.</em>
+</p>
+
+## ⚠️ 10. Challenges Encountered & Solutions
 * **Challenge:** Large image size and slow build times during initial containerization.
   * **Solution:** Implemented **Multi-Stage Builds** using Alpine Linux, leveraging layer caching to download dependencies only once and reducing the final footprint drastically.
 * **Challenge:** Guaranteeing database data persistence across ephemeral Kubernetes Pod restarts.
@@ -219,14 +259,14 @@ Implemented a fully automated CI/CD pipeline using **GitHub Actions**. Upon code
 * **Challenge:** Securely routing external traffic to the application while completely isolating the database from public access.
   * **Solution:** Utilized an **NGINX Ingress Controller** for clean domain-based routing (`petclinic.local`) and applied strict **Zero-Trust Network Policies** that restrict database access exclusively to the application pods.
 
-## 🔭 10. Future Enhancements
+## 🔭 11. Future Enhancements
 - [x] Migrate local orchestration to an **Enterprise Kubernetes Cluster**.
 - [x] Establish automated CI/CD pipelines via **GitHub Actions**.
-- [ ] Package Kubernetes manifests using **Helm Charts** for dynamic and template-based deployments.
+- [x] Integrate a full observability and telemetry stack (**Prometheus & Grafana** via Helm).
+- [ ] Package custom Kubernetes manifests using **Helm Charts** for dynamic deployments.
 - [ ] Implement Infrastructure as Code (IaC) provisioning pipelines with **Terraform & Ansible**.
-- [ ] Integrate a full observability and telemetry stack (**Prometheus, Grafana, ELK Stack**).
 
-## 📬 11. Contact & Connect
+## 📬 12. Contact & Connect
 
 <div align="center">
   <h3>🏗️ Architected & Deployed by</h3>
