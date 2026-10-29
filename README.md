@@ -80,21 +80,6 @@ It is fully equipped with persistent storage, zero-trust network isolation, auto
 │       └── deploy-stack.yml    # Helm chart automated deployment
 ├── docs/                       # Project documentation assets
 │   └── images/                 # Execution screenshots and diagrams
-│       ├── 2a-compute-resources.png
-│       ├── 2b-storage-resources.png
-│       ├── 4-ingress-routing.png
-│       ├── app-running.png
-│       ├── app-running-k8s.png
-│       ├── build-process.png
-│       ├── containers-healthy.png
-│       ├── data-persistence.png
-│       ├── docker push.png
-│       ├── dockerhub-images.png
-│       ├── github-actions-success.png
-│       ├── grafana-dashboard.png
-│       ├── helm-pods-running.png    # NEW: Replicas and Init-Container stability
-│       ├── helm-release.png         # NEW: Helm chart deployment status
-│       └── project-diagram.png
 ├── src/                        # Original Spring Petclinic Source Code
 ├── Dockerfile                  # Multi-stage, secure container definition
 ├── docker-compose.yml          # Local orchestration & DB integration
@@ -111,6 +96,9 @@ To fully deploy and test this infrastructure, ensure you have the following inst
 * [`kubectl` CLI](https://kubernetes.io/docs/tasks/tools/) configured to communicate with your cluster
 * **NGINX Ingress Controller** installed on your K8s cluster
 * [**Helm CLI**](https://helm.sh/docs/intro/install/) (Required for deploying the custom application chart and the Observability stack)
+* [**Terraform CLI**](https://developer.hashicorp.com/terraform/downloads) (Required for provisioning AWS cloud infrastructure)
+* [**Ansible**](https://docs.ansible.com/) (Required for automated configuration management and Helm deployments)
+* [**AWS CLI v2**](https://aws.amazon.com/cli/) (Required for configuring AWS credentials and interacting with EKS)
 
 ## 🐳 6. Local Execution Guide (Docker Compose)
 *Use this method for local development and testing.*
@@ -302,7 +290,7 @@ Resolved the classic `CrashLoopBackOff` race condition by implementing Kubernete
 The following diagram illustrates the Infrastructure as Code (IaC) provisioning workflow and the resulting isolated AWS cloud environment:
 
 <p align="center">
-  <img src="docs/images/aws-eks-iac-workflow.png" width="100%">
+  <img src="docs/images/AWS EKS IaC Workflow Architecture.png" width="100%">
   <br>
   <em><b>Figure 14:</b> System Architecture Diagram</em>
 </p>
@@ -310,8 +298,8 @@ The following diagram illustrates the Infrastructure as Code (IaC) provisioning 
 #### Stage 1: Infrastructure Provisioning & Networking
 Architected a secure AWS VPC from scratch (Public/Private Subnets, NAT Gateway) and provisioned an EKS Cluster using custom, reusable **Terraform** modules.
 <p align="center">
-  <img src="docs/images/phase3-iac/01-terraform-apply.png" width="45%">
-  <img src="docs/images/phase3-iac/02-aws-vpc-map.png" width="45%">
+  <img src="docs/images/01-terraform-apply.png" width="45%">
+  <img src="docs/images/02-aws-vpc-map.png" width="45%">
   <br>
   <em><b>Figure 15:</b> Successful Terraform execution and the resulting isolated AWS VPC topology.</em>
 </p>
@@ -319,8 +307,8 @@ Architected a secure AWS VPC from scratch (Public/Private Subnets, NAT Gateway) 
 #### Stage 2: Cluster Readiness & Horizontal Scaling
 Verified the managed Kubernetes Control Plane and successfully scaled the EC2 Worker Nodes within the isolated private subnets.
 <p align="center">
-  <img src="docs/images/phase3-iac/03-aws-eks-active.png" width="45%">
-  <img src="docs/images/phase3-iac/04-aws-ec2-nodes.png" width="45%">
+  <img src="docs/images/03-aws-eks-active.png" width="45%">
+  <img src="docs/images/04-aws-ec2-nodes.png" width="45%">
   <br>
   <em><b>Figure 16:</b> Active EKS Cluster and horizontally scaled worker nodes on AWS EC2.</em>
 </p>
@@ -328,8 +316,8 @@ Verified the managed Kubernetes Control Plane and successfully scaled the EC2 Wo
 #### Stage 3: Configuration Management & Resource Optimization
 Automated the deployment of workloads using **Ansible**. Successfully deployed the enterprise stack on strict Free-Tier constraints (`t3.micro`) by applying Horizontal Scaling and tuning resource limits.
 <p align="center">
-  <img src="docs/images/phase3-iac/05-ansible-success.png" width="45%">
-  <img src="docs/images/phase3-iac/06-workloads-running.png" width="45%">
+  <img src="docs/images/05-ansible-success.png" width="45%">
+  <img src="docs/images/06-workloads-running.png" width="45%">
   <br>
   <em><b>Figure 17:</b> Ansible playbook execution success and the stabilized Kubernetes pods running on EKS.</em>
 </p>
