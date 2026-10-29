@@ -1,0 +1,12 @@
+---
+- name: Enterprise EKS Deployment - Helm
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Deploy Enterprise Petclinic Custom Chart
+      kubernetes.core.helm:
+        name: my-petclinic
+        chart_ref: ../../deploy/petclinic-chart
+        release_namespace: default
+        state: present
+        wait: false

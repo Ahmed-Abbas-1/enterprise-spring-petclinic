@@ -8,6 +8,9 @@
     <img src="https://img.shields.io/badge/Prometheus-Monitoring-E6522C?style=for-the-badge&logo=prometheus&logoColor=white" alt="Prometheus" />
     <img src="https://img.shields.io/badge/Grafana-Observability-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana" />
     <br>
+    <img src="https://img.shields.io/badge/Terraform-IaC-7B42BC?style=for-the-badge&logo=terraform&logoColor=white" alt="Terraform" />
+    <img src="https://img.shields.io/badge/Ansible-Automation-EE0000?style=for-the-badge&logo=ansible&logoColor=white" alt="Ansible" />
+    <img src="https://img.shields.io/badge/AWS_EKS-Cloud-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS EKS" />
     <img src="https://img.shields.io/badge/Spring_Boot-Framework-6DB33F?style=for-the-badge&logo=spring&logoColor=white" alt="Spring Boot" />
     <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
     <img src="https://img.shields.io/badge/Infrastructure-Production_Ready-4CAF50?style=for-the-badge" alt="Production Ready" />
@@ -19,7 +22,9 @@
 ---
 
 ## 📖 1. Project Overview
-This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has evolved from optimized local Docker containerization into a highly available, production-ready **Kubernetes (K8s)** architecture. It is fully equipped with persistent storage, zero-trust network isolation, domain-based Ingress routing, automated **CI/CD pipelines via GitHub Actions**, a complete **Observability stack using Prometheus and Grafana**, and elegantly packaged using **Custom Helm Charts** for seamless, dynamic deployments.
+This repository demonstrates an **Enterprise-Grade Infrastructure setup** for the official Spring Petclinic application. The project has evolved from optimized local Docker containerization into a highly available, production-ready **AWS EKS (Kubernetes)** architecture. 
+
+It is fully equipped with persistent storage, zero-trust network isolation, automated **CI/CD pipelines via GitHub Actions**, a complete **Observability stack**, and elegantly packaged using **Custom Helm Charts**. The entire cloud infrastructure and configuration management are fully automated using **Terraform** and **Ansible**, demonstrating a complete Infrastructure as Code (IaC) lifecycle.
 
 ## 🏛️ 2. Architecture Diagram
 
@@ -36,6 +41,9 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 * **Enterprise Orchestration:** Kubernetes (K8s)
 * **Infrastructure Packaging:** Helm (Custom Charts & Dynamic `values.yaml` Templating)
 * **Database:** MySQL 8.0 (StatefulSets, PV/PVCs for Data Persistence)
+* **Cloud Provider:** Amazon Web Services (AWS EKS, VPC, EC2, NAT Gateway)
+* **Infrastructure as Code (IaC):** Terraform (Modules, State Locking)
+* **Configuration Management:** Ansible (Playbooks, Helm Integration)
 * **Networking & Routing:** NGINX Ingress Controller, K8s Services
 * **Lifecycle & Security:** K8s Init-Containers (Startup Synchronization), Non-Root Execution, Zero-Trust Network Policies
 * **CI/CD Automation:** GitHub Actions
@@ -59,6 +67,17 @@ This repository demonstrates an **Enterprise-Grade Infrastructure setup** for th
 │       ├── Chart.yaml          # Helm chart metadata
 │       ├── values.yaml         # Centralized dynamic configuration (e.g., replicas)
 │       └── templates/          # Parameterized Kubernetes manifests
+├── terraform/                  # AWS Infrastructure as Code
+│   ├── modules/
+│   │   ├── vpc/                # VPC, Subnets, NAT, IGW routing
+│   │   └── eks/                # EKS Cluster, Node Groups, IAM Roles
+│   ├── main.tf                 # Root module
+│   ├── variables.tf        
+│   └── provider.tf             # AWS Provider configuration
+├── ansible/                    # Configuration Management
+│   ├── inventory/hosts.ini     # Localhost Kubernetes connection
+│   └── playbooks/          
+│       └── deploy-stack.yml    # Helm chart automated deployment
 ├── docs/                       # Project documentation assets
 │   └── images/                 # Execution screenshots and diagrams
 │       ├── 2a-compute-resources.png
@@ -278,6 +297,43 @@ Resolved the classic `CrashLoopBackOff` race condition by implementing Kubernete
   <em><b>Figure 13:</b> Application and Database pods running flawlessly, stabilized by Init-Containers and dynamically scaled to 3 replicas.</em>
 </p>
 
+### ☁️ Part F: Cloud Infrastructure as Code (AWS EKS & Terraform)
+
+The following diagram illustrates the Infrastructure as Code (IaC) provisioning workflow and the resulting isolated AWS cloud environment:
+
+<p align="center">
+  <img src="docs/images/aws-eks-iac-workflow.png" width="100%">
+  <br>
+  <em><b>Figure 14:</b> System Architecture Diagram</em>
+</p>
+
+#### Stage 1: Infrastructure Provisioning & Networking
+Architected a secure AWS VPC from scratch (Public/Private Subnets, NAT Gateway) and provisioned an EKS Cluster using custom, reusable **Terraform** modules.
+<p align="center">
+  <img src="docs/images/phase3-iac/01-terraform-apply.png" width="45%">
+  <img src="docs/images/phase3-iac/02-aws-vpc-map.png" width="45%">
+  <br>
+  <em><b>Figure 15:</b> Successful Terraform execution and the resulting isolated AWS VPC topology.</em>
+</p>
+
+#### Stage 2: Cluster Readiness & Horizontal Scaling
+Verified the managed Kubernetes Control Plane and successfully scaled the EC2 Worker Nodes within the isolated private subnets.
+<p align="center">
+  <img src="docs/images/phase3-iac/03-aws-eks-active.png" width="45%">
+  <img src="docs/images/phase3-iac/04-aws-ec2-nodes.png" width="45%">
+  <br>
+  <em><b>Figure 16:</b> Active EKS Cluster and horizontally scaled worker nodes on AWS EC2.</em>
+</p>
+
+#### Stage 3: Configuration Management & Resource Optimization
+Automated the deployment of workloads using **Ansible**. Successfully deployed the enterprise stack on strict Free-Tier constraints (`t3.micro`) by applying Horizontal Scaling and tuning resource limits.
+<p align="center">
+  <img src="docs/images/phase3-iac/05-ansible-success.png" width="45%">
+  <img src="docs/images/phase3-iac/06-workloads-running.png" width="45%">
+  <br>
+  <em><b>Figure 17:</b> Ansible playbook execution success and the stabilized Kubernetes pods running on EKS.</em>
+</p>
+
 ## ⚠️ 11. Challenges Encountered & Solutions
 * **Challenge:** Large image size and slow build times during initial containerization.
   * **Solution:** Implemented **Multi-Stage Builds** using Alpine Linux, leveraging layer caching to download dependencies only once and reducing the final footprint drastically.
@@ -287,13 +343,15 @@ Resolved the classic `CrashLoopBackOff` race condition by implementing Kubernete
   * **Solution:** Utilized an **NGINX Ingress Controller** for clean domain-based routing (`petclinic.local`) and applied strict **Zero-Trust Network Policies** that restrict database access exclusively to the application pods.
 * **Challenge:** Application pods entering a `CrashLoopBackOff` state due to a race condition where they initialize before the database is fully ready.
   * **Solution:** Implemented Kubernetes **Init-Containers** within the Custom Helm Chart to actively poll the database port, ensuring the main application container only boots after a successful connection to MySQL is established.
+* **Challenge:** Deploying heavy workloads (Spring Boot + MySQL) on strict AWS Free-Tier limits (`t3.micro`), leading to `node.kubernetes.io/memory-pressure` and ENI IP exhaustion (`Too many pods`).
+  * **Solution:** Applied **Horizontal Scaling** to the EKS Node Group in Terraform and dynamically adjusted the `replicaCount` via Ansible and Helm to balance the load across multiple micro-instances, ensuring successful deployment without triggering OOMKilled errors.
 
 ## 🔭 12. Future Enhancements
 - [x] Migrate local orchestration to an **Enterprise Kubernetes Cluster**.
 - [x] Establish automated CI/CD pipelines via **GitHub Actions**.
 - [x] Integrate a full observability and telemetry stack (**Prometheus & Grafana** via Helm).
 - [x] Package custom Kubernetes manifests using **Helm Charts** for dynamic deployments.
-- [ ] Implement Infrastructure as Code (IaC) provisioning pipelines with **Terraform & Ansible**.
+- [x] Implement Infrastructure as Code (IaC) provisioning pipelines with **Terraform & Ansible**.
 ## 📬 13. Contact & Connect
 
 <div align="center">
